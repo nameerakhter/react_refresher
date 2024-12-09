@@ -1,51 +1,44 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
-const App = () => {
+import { useEffect, useState } from "react"
 
+export default function App() {
+  const [data, setData] = useState(null)
+  async function fetchdata() {
+    try {
+
+      const res = await fetch('https://randomuser.me/api/')
+      const response = await res.json()
+      console.log(response.results[0])
+      setData(response.results[0])
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchdata()
+  }, [])
   return (
-    <div className="text-white text-4xl ">
-
-      <BrowserRouter>
-        <Link to='/Home'>Home</Link>
-        <br />
-        <Link to='/blogs'>blogs</Link>
-        <br />
-        <Link to='/profile'>profile</Link>
-        <br />
-        <Routes>
-          <Route path='/Home' element={<Home />} />
-          <Route path='/blogs' element={<Blogs />} />
-          <Route path='/profile' element={<Profile />} />
-          Hi there
-        </Routes>
-      </BrowserRouter>
-    </div>
-  );
-};
-
-console.log(App)
-export default App;
+    <div className="text-white text-xl w-[1300px]  ">
+      <pre>
+        {JSON.stringify(data, null, 2)}
+      </pre>
 
 
-function Home() {
-  return (
-    <div>This is home page
+      {data && <Card data={data} />}
+
     </div>
   )
 }
 
 
 
-function Blogs() {
+function Card({ data }) {
   return (
-    <div>This is blogs page
-    </div>
+    <>
+      <div className="text-white">
+        <h1> {data.name.first} </h1>
+        <img src={data.picture.large} width={200} height={200} />
+      </div>
+    </>
   )
 }
-
-function Profile() {
-  return (
-    <div>This is Profile page
-    </div>
-  )
-}
-
