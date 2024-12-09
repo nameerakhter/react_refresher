@@ -2,10 +2,14 @@ import { useEffect, useState } from "react"
 
 export default function App() {
   const [data, setData] = useState(null)
-  async function fetchdata() {
-    try {
+  const [count, setCount] = useState(0)
+  function loadMoreUsers() {
+    setCount((prevCount) => prevCount + 1)
+  }
 
-      const res = await fetch('https://randomuser.me/api/')
+  async function fetchdata(count) {
+    try {
+      const res = await fetch(`https://randomuser.me/api?=page=${count}`)
       const response = await res.json()
       console.log(response.results[0])
       setData(response.results[0])
@@ -15,15 +19,12 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetchdata()
-  }, [])
+    fetchdata(count)
+
+  }, [count])
   return (
     <div className="text-white text-xl w-[1300px]  ">
-      <pre>
-        {JSON.stringify(data, null, 2)}
-      </pre>
-
-
+      <button onClick={loadMoreUsers} className=" bg-white text-black border rounded-xl p-2"> load more data </button>
       {data && <Card data={data} />}
 
     </div>
@@ -33,10 +34,11 @@ export default function App() {
 
 
 function Card({ data }) {
+  const username = `${data.name.first}  ${data.name.last}`
   return (
     <>
       <div className="text-white">
-        <h1> {data.name.first} </h1>
+        <h1> {username} </h1>
         <img src={data.picture.large} width={200} height={200} />
       </div>
     </>
