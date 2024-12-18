@@ -1,153 +1,35 @@
-import { useRef, useState } from "react"
+import { useState } from 'react'
+import reactLogo from './assets/react.svg'
+import viteLogo from '/vite.svg'
+import './App.css'
 
-export default function App() {
-  const [time, setTime] = useState(0)
-  const intervalRef = useRef(null)
-  const startTimer = () => {
-    if (intervalRef.current !== null) return
-    intervalRef.current = setInterval(() => {
-      setTime((prevTime) => prevTime + 1)
-    }, 1000)
-  }
+function App() {
+  const [count, setCount] = useState(0)
 
-  const stopTimer = () => {
-    clearInterval(intervalRef.current)
-    intervalRef.current = null
-  }
   return (
     <>
-      <div className="text-white text-4xl flex flex-col items-center">
-        {time}
-        <button onClick={startTimer}> start timer</button>
-        <button onClick={stopTimer}> stop timer</button>
+      <div>
+        <a href="https://vite.dev" target="_blank">
+          <img src={viteLogo} className="logo" alt="Vite logo" />
+        </a>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
       </div>
-
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.jsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
     </>
-
   )
 }
 
-
-
-
-
-
-
-
-
-
-
-//import { useEffect, useState } from "react"
-//
-//
-//export default function App() {
-//  const [data, setData] = useState([])
-//  const [count, setCount] = useState(1)
-//  function loadMoreUsers() {
-//    setCount((prevCount) => prevCount + 1)
-//  }
-//
-//
-//  async function fetchdata(count) {
-//    try {
-//      const res = await fetch(`https://randomuser.me/api?=page=${count}`)
-//      const response = await res.json()
-//      console.log(response.results[0])
-//      setData((prevData) => [...prevData, response.results[0]])
-//    } catch (error) {
-//      console.log(error)
-//    }
-//  }
-//
-//  useEffect(() => {
-//    fetchdata(count)
-//
-//  }, [count])
-//  return (
-//    <div className="text-white text-xl w-[1300px]  ">
-//      <button onClick={loadMoreUsers} className=" bg-white text-black border rounded-xl p-2"> load more data </button>
-//
-//      {data.map((user, index) => (
-//        <Card key={index} data={user} />
-//      ))}
-//    </div>
-//  )
-//}
-//
-//
-//
-//function Card({ data }) {
-//  const username = `${data.name.first}  ${data.name.last}`
-//  return (
-//    <>
-//      <div className="text-white">
-//        <h1> {username} </h1>
-//        <img src={data.picture.large} width={200} height={200} />
-//      </div>
-//    </>
-//  )
-//}
-//
-//function useFetch(url, loading) {
-//  const [data, setData] = useState()
-//  const [loading, setLoading] = useState()
-//
-//  async function getData() {
-//    try {
-//      setLoading(true)
-//      const res = await fetch(url)
-//      const response = await res.json()
-//      setData(response)
-//      setLoading(false)
-//
-//    } catch (error) {
-//      console.log(error)
-//
-//    }
-//  }
-//
-//  useEffect(() => {
-//    getData()
-//  }, [url])
-//
-//  return { data, loading }
-//}
-//
-//function usePrev() {
-//  const ref = useRef()
-//
-//  useEffect(() => {
-//    ref.current = value
-//  })
-//
-//  return ref.current
-//}
-//
-//function usePrev(target, value) {
-//  const ref = useRef({ target, value })
-//
-//  if (ref.current.target !== value) {
-//    ref.current.previous = target
-//    ref.current.target = target
-//  }
-//
-//  return ref.current.value
-//
-//}
-//
-//function useDebounce() {
-//  const [debounceValue, setDebounceValue] = useState(value)
-//
-//  useEffect(() => {
-//    const handler = setTimeout(() => {
-//      setDebounceValue(value)
-//    }, 1000);
-//
-//    return () => {
-//      clearTimeout(handler)
-//    }
-//  }, [value])
-//}
-
-
-
+export default App
