@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <button id="btn" onclick="onButtonClick()">Counter is 0</button>
+  </body>
+
+  <script>
+    let count = 0;
+    function onButtonClick() {
+      count = count + 1;
+      document.getElementById("btn").innerHTML = `Counter is ${count}`;
+    }
+  </script>
+</html>
