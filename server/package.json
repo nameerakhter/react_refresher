@@ -1,0 +1,12 @@
+{
+  "name": "react-refresher-server",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "demo": "bun run mongoose.js"
+  },
+  "dependencies": {
+    "mongoose": "^8.9.5"
+  }
+}
