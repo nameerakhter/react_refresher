@@ -1,3 +1,28 @@
+// =============================================================================
+// WHY THIS FILE EXISTS (read this first)
+// =============================================================================
+//
+// Before this, we used mongoose.js — a script you run with "bun run demo".
+// That is fine for LEARNING. It is NOT how a real website works.
+//
+// Problem with scripts only:
+//   - Script runs once on YOUR laptop, then stops.
+//   - Only you can run it. A user on your website cannot.
+//   - Your React app in the browser CANNOT talk to MongoDB directly.
+//   - You would expose your DB password to everyone (very unsafe).
+//
+// What Hono does:
+//   - Hono is a small web server. It listens for HTTP requests (GET, POST, etc.).
+//   - Your React app sends a request → Hono receives it → Mongoose saves to DB.
+//   - The server stays ON all the time. Many users can use it at once.
+//   - DB password stays on the server. Users never see it.
+//
+// See images in server/images/ and README for diagrams.
+//
+// REAL APP — all routes run at once (this is how production servers work)
+// Learning version (one step at a time): see index.step-by-step.example.js
+// =============================================================================
+
 import { Hono } from "hono";
 import mongoose from "mongoose";
 import { MONGODB_URI, User, Course } from "./models.js";
@@ -5,208 +30,71 @@ import { MONGODB_URI, User, Course } from "./models.js";
 const app = new Hono();
 const PORT = 3000;
 
-function startServer() {
-  console.log(`Server running at http://localhost:${PORT}`);
-  Bun.serve({ port: PORT, fetch: app.fetch });
-}
+// Connect once when the server starts — stays open while the app runs
+console.log("Connecting to MongoDB...");
+await mongoose.connect(MONGODB_URI);
+console.log("Connected to database:", mongoose.connection.name);
 
-// =============================================================================
-// STEP 1 — A basic backend server (no database yet)
-// =============================================================================
-// Goal: see that a backend is just a program that listens for HTTP requests.
-// Run: bun run dev
-// Try: open http://localhost:3000 in the browser
+// --- routes ---
 
-function step1_basicServer() {
-  app.get("/", (c) => {
-    return c.json({ message: "API is running" });
+app.get("/", (c) => {
+  return c.json({
+    message: "API is running",
+    database: mongoose.connection.name,
   });
+});
 
-  startServer();
-}
+// users
+app.get("/users", async (c) => {
+  return c.json(await User.find());
+});
 
-// =============================================================================
-// STEP 2 — Connect to MongoDB when the server starts
-// =============================================================================
-// Goal: keep one DB connection open while the server runs (unlike the scripts).
-// Comment out step 1, uncomment step 2. Run: bun run dev
+app.post("/users", async (c) => {
+  const user = await User.create(await c.req.json());
+  return c.json(user, 201);
+});
 
-async function step2_connectDB() {
-  console.log("Connecting to MongoDB...");
-  await mongoose.connect(MONGODB_URI);
-  console.log("Connected to database:", mongoose.connection.name);
+app.patch("/users/:id", async (c) => {
+  const user = await User.findByIdAndUpdate(
+    c.req.param("id"),
+    await c.req.json(),
+    { new: true }
+  );
+  if (!user) return c.json({ error: "User not found" }, 404);
+  return c.json(user);
+});
 
-  app.get("/", (c) => {
-    return c.json({
-      message: "API is running",
-      database: mongoose.connection.name,
-    });
-  });
+app.delete("/users/:id", async (c) => {
+  const user = await User.findByIdAndDelete(c.req.param("id"));
+  if (!user) return c.json({ error: "User not found" }, 404);
+  return c.json(user);
+});
 
-  startServer();
-}
+// courses
+app.get("/courses", async (c) => {
+  return c.json(await Course.find());
+});
 
-// =============================================================================
-// STEP 3 — GET /users (read data through an API)
-// =============================================================================
-// Goal: browser or Postman hits your server → server reads from MongoDB → JSON back.
-// Comment out previous step, uncomment step 3. Run: bun run dev
-// Try: GET http://localhost:3000/users
+app.post("/courses", async (c) => {
+  const course = await Course.create(await c.req.json());
+  return c.json(course, 201);
+});
 
-async function step3_getUsers() {
-  await mongoose.connect(MONGODB_URI);
-  console.log("Connected to database:", mongoose.connection.name);
+app.patch("/courses/:id", async (c) => {
+  const course = await Course.findByIdAndUpdate(
+    c.req.param("id"),
+    await c.req.json(),
+    { new: true }
+  );
+  if (!course) return c.json({ error: "Course not found" }, 404);
+  return c.json(course);
+});
 
-  app.get("/users", async (c) => {
-    const users = await User.find();
-    return c.json(users);
-  });
+app.delete("/courses/:id", async (c) => {
+  const course = await Course.findByIdAndDelete(c.req.param("id"));
+  if (!course) return c.json({ error: "Course not found" }, 404);
+  return c.json(course);
+});
 
-  startServer();
-}
-
-// =============================================================================
-// STEP 4 — POST /users (add data through an API)
-// =============================================================================
-// Goal: send JSON in the request body → server saves it with User.create().
-// Comment out previous step, uncomment step 4. Run: bun run dev
-//
-// Try in terminal:
-// curl -X POST http://localhost:3000/users \
-//   -H "Content-Type: application/json" \
-//   -d "{\"name\":\"Alice\",\"email\":\"alice@example.com\",\"role\":\"student\"}"
-
-async function step4_postUsers() {
-  await mongoose.connect(MONGODB_URI);
-  console.log("Connected to database:", mongoose.connection.name);
-
-  app.get("/users", async (c) => {
-    const users = await User.find();
-    return c.json(users);
-  });
-
-  app.post("/users", async (c) => {
-    const body = await c.req.json();
-    const user = await User.create(body);
-    console.log("Created user:", user);
-    return c.json(user, 201);
-  });
-
-  startServer();
-}
-
-// =============================================================================
-// STEP 5 — PATCH and DELETE /users/:id
-// =============================================================================
-// Comment out previous step, uncomment step 5. Run: bun run dev
-//
-// PATCH  http://localhost:3000/users/PASTE_ID_HERE  body: {"name":"Alice Johnson"}
-// DELETE http://localhost:3000/users/PASTE_ID_HERE
-
-async function step5_userCrud() {
-  await mongoose.connect(MONGODB_URI);
-  console.log("Connected to database:", mongoose.connection.name);
-
-  app.get("/users", async (c) => {
-    return c.json(await User.find());
-  });
-
-  app.post("/users", async (c) => {
-    const user = await User.create(await c.req.json());
-    return c.json(user, 201);
-  });
-
-  app.patch("/users/:id", async (c) => {
-    const user = await User.findByIdAndUpdate(
-      c.req.param("id"),
-      await c.req.json(),
-      { new: true }
-    );
-    if (!user) return c.json({ error: "User not found" }, 404);
-    return c.json(user);
-  });
-
-  app.delete("/users/:id", async (c) => {
-    const user = await User.findByIdAndDelete(c.req.param("id"));
-    if (!user) return c.json({ error: "User not found" }, 404);
-    return c.json(user);
-  });
-
-  startServer();
-}
-
-// =============================================================================
-// STEP 6 — Course APIs (same pattern as users)
-// =============================================================================
-// Comment out previous step, uncomment step 6. Run: bun run dev
-//
-// GET    http://localhost:3000/courses
-// POST   http://localhost:3000/courses
-// PATCH  http://localhost:3000/courses/PASTE_ID_HERE
-// DELETE http://localhost:3000/courses/PASTE_ID_HERE
-
-async function step6_courseApis() {
-  await mongoose.connect(MONGODB_URI);
-  console.log("Connected to database:", mongoose.connection.name);
-
-  // --- users ---
-  app.get("/users", async (c) => c.json(await User.find()));
-
-  app.post("/users", async (c) => {
-    const user = await User.create(await c.req.json());
-    return c.json(user, 201);
-  });
-
-  app.patch("/users/:id", async (c) => {
-    const user = await User.findByIdAndUpdate(
-      c.req.param("id"),
-      await c.req.json(),
-      { new: true }
-    );
-    if (!user) return c.json({ error: "User not found" }, 404);
-    return c.json(user);
-  });
-
-  app.delete("/users/:id", async (c) => {
-    const user = await User.findByIdAndDelete(c.req.param("id"));
-    if (!user) return c.json({ error: "User not found" }, 404);
-    return c.json(user);
-  });
-
-  // --- courses ---
-  app.get("/courses", async (c) => c.json(await Course.find()));
-
-  app.post("/courses", async (c) => {
-    const course = await Course.create(await c.req.json());
-    return c.json(course, 201);
-  });
-
-  app.patch("/courses/:id", async (c) => {
-    const course = await Course.findByIdAndUpdate(
-      c.req.param("id"),
-      await c.req.json(),
-      { new: true }
-    );
-    if (!course) return c.json({ error: "Course not found" }, 404);
-    return c.json(course);
-  });
-
-  app.delete("/courses/:id", async (c) => {
-    const course = await Course.findByIdAndDelete(c.req.param("id"));
-    if (!course) return c.json({ error: "Course not found" }, 404);
-    return c.json(course);
-  });
-
-  startServer();
-}
-
-// =============================================================================
-// Run ONE step at a time — comment/uncomment the line you want
-// =============================================================================
-
-// step1_basicServer();
-// step2_connectDB();
-step3_getUsers();
-// step4_postUsers();
-// step5_userCrud();
-// step6_courseApis();
+console.log(`Server running at http://localhost:${PORT}`);
+Bun.serve({ port: PORT, fetch: app.fetch });
