@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "demo": "bun run mongoose.js"
+    "demo": "bun run mongoose.js",
+    "dev": "bun run index.js"
   },
   "dependencies": {
+    "hono": "^4.7.4",
     "mongoose": "^8.9.5"
   }
 }
