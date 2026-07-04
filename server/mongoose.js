@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { MONGODB_URI, User, Course } from "./models.js";
 
 // =============================================================================
 // Connection string
@@ -10,9 +11,6 @@ import mongoose from "mongoose";
 //
 // Atlas (cloud):  put your URI in server/.env as MONGODB_URI=...
 // Bun loads .env automatically.
-
-const MONGODB_URI =
-  process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/course_store";
 
 // =============================================================================
 // STEP 1 — Connect to MongoDB (nothing else)
@@ -34,14 +32,6 @@ async function step1_connect() {
 // =============================================================================
 // Goal: define a model and save a document to the "users" collection.
 // Comment out step 1 above, uncomment step 2 below. Run: bun run demo
-
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  role: String,
-});
-
-const User = mongoose.model("User", userSchema);
 
 async function step2_insertUser() {
   console.log("Step 2: connecting to MongoDB...");
@@ -124,16 +114,6 @@ async function step5_deleteUser() {
 // =============================================================================
 // Goal: second model for the course-selling site.
 // Comment out previous step, uncomment step 6 below. Run: bun run demo
-
-const courseSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  price: Number,
-  instructor: String,
-  published: Boolean,
-});
-
-const Course = mongoose.model("Course", courseSchema);
 
 async function step6_insertCourse() {
   console.log("Step 6: connecting to MongoDB...");
