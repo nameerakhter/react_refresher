@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "demo": "bun run mongoose.js",
-    "dev": "bun run index.js"
+    "dev": "bun run index.js",
+    "dev:learning": "bun run index.step-by-step.example.js"
   },
   "dependencies": {
     "hono": "^4.7.4",
