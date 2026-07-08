@@ -169,3 +169,113 @@ Use [Postman](https://www.postman.com/) or Thunder Client if you prefer a UI.
 ## Next step
 
 Call these APIs from your React app with `fetch`.
+
+---
+
+## Part 3 — Connect React (client)
+
+The React app lives in the **project root** (`src/`). It talks to this server over HTTP — never to MongoDB directly.
+
+### Run both at once
+
+**Terminal 1 — server (this folder):**
+
+```bash
+bun run dev
+```
+
+**Terminal 2 — React (project root):**
+
+```bash
+cd ..
+bun run dev
+```
+
+Open **http://localhost:5173**.
+
+### What happens when you click "Load courses"
+
+```
+React (port 5173)                Hono (port 3000)              MongoDB
+      |                                |                          |
+      |  fetch("/api/courses")         |                          |
+      |  ─────────────────────────►  |                          |
+      |  (Vite proxy strips /api)      |  Course.find()           |
+      |                                |  ───────────────────────►  |
+      |                                |  ◄───────────────────────  |
+      |  ◄─────────────────────────  |  JSON array of courses   |
+      |  setCourses(data)            |                          |
+```
+
+### Files involved
+
+| File | Role |
+| ---- | ---- |
+| `src/api.js` | `getCourses()`, `createCourse()`, etc. — wraps `fetch` |
+| `src/App.jsx` | UI; calls `api.js` on button click / form submit |
+| `vite.config.js` | Proxies `/api/*` → `http://localhost:3000/*` in dev |
+| `index.js` (here) | `cors()` so browser requests from port 5173 are allowed |
+
+### Why the Vite proxy?
+
+React and Hono run on **different ports**. Without the proxy you would write:
+
+```js
+fetch("http://localhost:3000/courses")  // works, but hardcodes URL + needs CORS
+```
+
+With the proxy:
+
+```js
+fetch("/api/courses")  // Vite forwards to localhost:3000/courses
+```
+
+Same-origin in dev = simpler `fetch` calls. CORS is still enabled on the server for when you call the API directly (Postman, curl, or production).
+
+### Why CORS in `index.js`?
+
+Browsers block JavaScript from reading responses from another origin unless the server sends `Access-Control-Allow-Origin`. React is on `5173`, Hono on `3000` — different origins.
+
+```js
+import { cors } from "hono/cors";
+
+app.use("/*", cors({
+  origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+}));
+```
+
+**Without this:** `fetch` might fail in the browser even though curl works.
+
+### Try the UI
+
+1. **Load courses** — `GET /courses` via `getCourses()`
+2. **Add course** — form submit → `POST /courses` with JSON body
+3. **Delete** — `DELETE /courses/:id`
+
+The status bar at the bottom of the React app shows which request ran. Open DevTools → Network to see the real HTTP traffic.
+
+### `api.js` pattern (mirror of server routes)
+
+Server route:
+
+```js
+app.post("/courses", async (c) => {
+  const course = await Course.create(await c.req.json());
+  return c.json(course, 201);
+});
+```
+
+Client call:
+
+```js
+export function createCourse(course) {
+  return request("/courses", {
+    method: "POST",
+    body: JSON.stringify(course),
+  });
+}
+```
+
+Same URL path, same JSON shape — client and server are a matched pair.
+
+Full client guide: [`../README.md`](../README.md).
