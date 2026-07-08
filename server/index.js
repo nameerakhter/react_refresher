@@ -24,11 +24,21 @@
 // =============================================================================
 
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import mongoose from "mongoose";
 import { MONGODB_URI, User, Course } from "./models.js";
 
 const app = new Hono();
 const PORT = 3000;
+
+// React runs on a different port (Vite: 5173). Browsers block cross-origin requests
+// unless the server says it's OK. This middleware adds those headers.
+app.use(
+  "/*",
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+  })
+);
 
 // Connect once when the server starts — stays open while the app runs
 console.log("Connecting to MongoDB...");
